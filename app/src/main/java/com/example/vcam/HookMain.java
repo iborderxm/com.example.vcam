@@ -636,7 +636,7 @@ public class HookMain implements IXposedHookLoadPackage {
             }
         });
 
-/*        XposedHelpers.findAndHookMethod("android.hardware.Camera", lpparam.classLoader, "stopPreview", new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod("android.hardware.Camera", lpparam.classLoader, "stopPreview", new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 if (param.thisObject.equals(HookMain.origin_preview_camera) || param.thisObject.equals(HookMain.camera_onPreviewFrame) || param.thisObject.equals(HookMain.mcamera1)) {
@@ -656,7 +656,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     XposedBridge.log("停止预览");
                 }
             }
-        });*/
+        });
 
         XposedHelpers.findAndHookMethod("android.media.ImageReader", lpparam.classLoader, "newInstance", int.class, int.class, int.class, int.class, new XC_MethodHook() {
             @Override
