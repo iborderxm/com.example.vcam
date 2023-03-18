@@ -55,9 +55,9 @@ public class HookMain implements IXposedHookLoadPackage {
     public static int mwidth;
     public static boolean is_someone_playing;
     public static boolean is_hooked;
-    public static VideoToFrames hw_decode_obj;
+    public static VideoToFrames c1_hw_decode_obj;
     public static VideoToFrames c2_hw_decode_obj;
-    public static VideoToFrames c2_hw_decode_obj_1;
+    public static VideoToFrames c3_hw_decode_obj;
     public static SurfaceTexture c1_fake_texture;
     public static Surface c1_fake_surface;
     public static SurfaceHolder ori_holder;
@@ -640,8 +640,8 @@ public class HookMain implements IXposedHookLoadPackage {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 if (param.thisObject.equals(HookMain.origin_preview_camera) || param.thisObject.equals(HookMain.camera_onPreviewFrame) || param.thisObject.equals(HookMain.mcamera1)) {
-                    if (hw_decode_obj != null) {
-                        hw_decode_obj.stopDecode();
+                    if (c1_hw_decode_obj != null) {
+                        c1_hw_decode_obj.stopDecode();
                     }
                     if (mplayer1 != null) {
                         mplayer1.release();
@@ -711,20 +711,20 @@ public class HookMain implements IXposedHookLoadPackage {
         }
 
         if (c2_reader_Surfcae_1 != null) {
-            if (c2_hw_decode_obj_1 != null) {
-                c2_hw_decode_obj_1.stopDecode();
-                c2_hw_decode_obj_1 = null;
+            if (c3_hw_decode_obj != null) {
+                c3_hw_decode_obj.stopDecode();
+                c3_hw_decode_obj = null;
             }
 
-            c2_hw_decode_obj_1 = new VideoToFrames();
+            c3_hw_decode_obj = new VideoToFrames();
             try {
                 if (imageReaderFormat == 256) {
-                    c2_hw_decode_obj_1.setSaveFrames("null", OutputImageFormat.JPEG);
+                    c3_hw_decode_obj.setSaveFrames("null", OutputImageFormat.JPEG);
                 } else {
-                    c2_hw_decode_obj_1.setSaveFrames("null", OutputImageFormat.NV21);
+                    c3_hw_decode_obj.setSaveFrames("null", OutputImageFormat.NV21);
                 }
-                c2_hw_decode_obj_1.set_surfcae(c2_reader_Surfcae_1);
-                c2_hw_decode_obj_1.decode(video_path + "virtual.mp4");
+                c3_hw_decode_obj.set_surfcae(c2_reader_Surfcae_1);
+                c3_hw_decode_obj.decode(video_path + "virtual.mp4");
             } catch (Throwable throwable) {
                 XposedBridge.log("【VCAM】" + throwable);
             }
@@ -823,9 +823,9 @@ public class HookMain implements IXposedHookLoadPackage {
                     c2_player.release();
                     c2_player = null;
                 }
-                if (c2_hw_decode_obj_1 != null) {
-                    c2_hw_decode_obj_1.stopDecode();
-                    c2_hw_decode_obj_1 = null;
+                if (c3_hw_decode_obj != null) {
+                    c3_hw_decode_obj.stopDecode();
+                    c3_hw_decode_obj = null;
                 }
                 if (c2_hw_decode_obj != null) {
                     c2_hw_decode_obj.stopDecode();
@@ -878,9 +878,9 @@ public class HookMain implements IXposedHookLoadPackage {
                             c2_hw_decode_obj.stopDecode();
                             c2_hw_decode_obj = null;
                         }
-                        if (c2_hw_decode_obj_1 != null) {
-                            c2_hw_decode_obj_1.stopDecode();
-                            c2_hw_decode_obj_1 = null;
+                        if (c3_hw_decode_obj != null) {
+                            c3_hw_decode_obj.stopDecode();
+                            c3_hw_decode_obj = null;
                         }
                         if (c2_player != null) {
                             c2_player.release();
@@ -1138,12 +1138,12 @@ public class HookMain implements IXposedHookLoadPackage {
                     if (finalNeed_stop == 1) {
                         return;
                     }
-                    if (hw_decode_obj != null) {
-                        hw_decode_obj.stopDecode();
+                    if (c1_hw_decode_obj != null) {
+                        c1_hw_decode_obj.stopDecode();
                     }
-                    hw_decode_obj = new VideoToFrames();
-                    hw_decode_obj.setSaveFrames("", OutputImageFormat.NV21);
-                    hw_decode_obj.decode(video_path + "virtual.mp4");
+                    c1_hw_decode_obj = new VideoToFrames();
+                    c1_hw_decode_obj.setSaveFrames("", OutputImageFormat.NV21);
+                    c1_hw_decode_obj.decode(video_path + "virtual.mp4");
                     while (data_buffer == null) {
                     }
                     System.arraycopy(data_buffer, 0, paramd.args[0], 0, Math.min(data_buffer.length, ((byte[]) paramd.args[0]).length));
