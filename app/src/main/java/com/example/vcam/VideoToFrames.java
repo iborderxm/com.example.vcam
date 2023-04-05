@@ -94,7 +94,7 @@ public class VideoToFrames implements Runnable {
 
     @SuppressLint("WrongConstant")
     public void videoDecode(String videoFilePath) throws IOException {
-        XposedBridge.log("【VCAM】【decoder】开始解码");
+        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]【decoder】开始解码");
         MediaExtractor extractor = null;
         MediaCodec decoder = null;
         try {
@@ -103,7 +103,7 @@ public class VideoToFrames implements Runnable {
             extractor.setDataSource(videoFilePath);
             int trackIndex = selectTrack(extractor);
             if (trackIndex < 0) {
-                XposedBridge.log("【VCAM】【decoder】No video track found in " + videoFilePath);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]【decoder】No video track found in " + videoFilePath);
             }
             extractor.selectTrack(trackIndex);
             MediaFormat mediaFormat = extractor.getTrackFormat(trackIndex);
@@ -112,10 +112,10 @@ public class VideoToFrames implements Runnable {
             showSupportedColorFormat(decoder.getCodecInfo().getCapabilitiesForType(mime));
             if (isColorFormatSupported(decodeColorFormat, decoder.getCodecInfo().getCapabilitiesForType(mime))) {
                 mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, decodeColorFormat);
-                XposedBridge.log("【VCAM】【decoder】set decode color format to type " + decodeColorFormat);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]【decoder】set decode color format to type " + decodeColorFormat);
             } else {
                 Log.i(TAG, "unable to set decode color format, color format type " + decodeColorFormat + " not supported");
-                XposedBridge.log("【VCAM】【decoder】unable to set decode color format, color format type " + decodeColorFormat + " not supported");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]【decoder】unable to set decode color format, color format type " + decodeColorFormat + " not supported");
             }
             decodeFramesToImage(decoder, extractor, mediaFormat);
             decoder.stop();
@@ -125,7 +125,7 @@ public class VideoToFrames implements Runnable {
                 decoder.stop();
             }
         }catch (Exception e){
-            XposedBridge.log("【VCAM】[videofile]"+ e.toString());
+            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][videofile]"+ e.toString());
         } finally {
             if (decoder != null) {
                 decoder.stop();
@@ -140,7 +140,7 @@ public class VideoToFrames implements Runnable {
     }
 
     private void showSupportedColorFormat(MediaCodecInfo.CodecCapabilities caps) {
-        System.out.print("supported color format: ");
+        System.out.print(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]supported color format: ");
         for (int c : caps.colorFormats) {
             System.out.print(c + "\t");
         }
@@ -207,7 +207,7 @@ public class VideoToFrames implements Runnable {
                             try {
                                 mQueue.put(arr);
                             } catch (InterruptedException e) {
-                                XposedBridge.log("【VCAM】" + e.toString());
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + e.toString());
                             }
                         }
                         if (outputImageFormat != null) {
@@ -220,8 +220,8 @@ public class VideoToFrames implements Runnable {
                         try {
                             Thread.sleep(sleepTime);
                         } catch (InterruptedException e) {
-                            XposedBridge.log("【VCAM】" + e.toString());
-                            XposedBridge.log("【VCAM】线程延迟出错");
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + e.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]线程延迟出错");
                         }
                     }
                     decoder.releaseOutputBuffer(outputBufferId, true);

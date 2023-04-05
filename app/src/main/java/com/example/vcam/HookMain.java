@@ -30,6 +30,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -95,6 +96,53 @@ public class HookMain implements IXposedHookLoadPackage {
     public Context toast_content;
 
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Exception {
+        LogToFileUtils.init(toast_content);
+        
+        XposedHelpers.findAndHookMethod("android.util.Log", lpparam.classLoader, "v", String.class, String.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                String tag = (String) param.args[0];
+                String msg = (String) param.args[1];
+                LogToFileUtils.write(String.format("[%s]:%s", tag, msg));
+            }
+        });
+
+        XposedHelpers.findAndHookMethod("android.util.Log", lpparam.classLoader, "d", String.class, String.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                String tag = (String) param.args[0];
+                String msg = (String) param.args[1];
+                LogToFileUtils.write(String.format("[%s]:%s", tag, msg));
+            }
+        });
+
+        XposedHelpers.findAndHookMethod("android.util.Log", lpparam.classLoader, "i", String.class, String.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                String tag = (String) param.args[0];
+                String msg = (String) param.args[1];
+                LogToFileUtils.write(String.format("[%s]:%s", tag, msg));
+            }
+        });
+
+        XposedHelpers.findAndHookMethod("android.util.Log", lpparam.classLoader, "w", String.class, String.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                String tag = (String) param.args[0];
+                String msg = (String) param.args[1];
+                LogToFileUtils.write(String.format("[%s]:%s", tag, msg));
+            }
+        });
+
+        XposedHelpers.findAndHookMethod("android.util.Log", lpparam.classLoader, "e", String.class, String.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                String tag = (String) param.args[0];
+                String msg = (String) param.args[1];
+                LogToFileUtils.write(String.format("[%s]:%s", tag, msg));
+            }
+        });
+
         XposedHelpers.findAndHookMethod("android.hardware.Camera", lpparam.classLoader, "setPreviewTexture", SurfaceTexture.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
@@ -116,10 +164,10 @@ public class HookMain implements IXposedHookLoadPackage {
                     }
                     if (origin_preview_camera != null && origin_preview_camera.equals(param.thisObject)) {
                         param.args[0] = fake_SurfaceTexture;
-                        XposedBridge.log("【VCAM】发现重复" + origin_preview_camera.toString());
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]发现重复" + origin_preview_camera.toString());
                         return;
                     } else {
-                        XposedBridge.log("【VCAM】创建预览");
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]创建预览");
                     }
 
                     origin_preview_camera = (Camera) param.thisObject;
@@ -138,7 +186,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                 }
@@ -148,6 +196,8 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod("android.hardware.camera2.CameraManager", lpparam.classLoader, "openCamera", String.class, CameraDevice.StateCallback.class, Handler.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]Environment.getExternalStorageDirectory().getPath():" + Environment.getExternalStorageDirectory().getPath());
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]video_path:" + video_path);
                 if (param.args[1] == null) {
                     return;
                 }
@@ -166,14 +216,15 @@ public class HookMain implements IXposedHookLoadPackage {
                 if (!file.exists()) {
                     if (toast_content != null && need_to_show_toast) {
                         try {
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]不存在替换视频:" + lpparam.packageName + " 当前路径：" + video_path);
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
                 }
-                XposedBridge.log("【VCAM】1位参数初始化相机，类：" + c2_state_callback.toString());
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]1位参数初始化相机，类：" + c2_state_callback.toString());
                 is_first_hook_build = true;
                 process_camera2_init(c2_state_callback);
             }
@@ -203,13 +254,13 @@ public class HookMain implements IXposedHookLoadPackage {
                             try {
                                 Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                             } catch (Exception ee) {
-                                XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                             }
                         }
                         return;
                     }
                     c2_state_callback = param.args[2].getClass();
-                    XposedBridge.log("【VCAM】2位参数初始化相机，类：" + c2_state_callback.toString());
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]2位参数初始化相机，类：" + c2_state_callback.toString());
                     is_first_hook_build = true;
                     process_camera2_init(c2_state_callback);
                 }
@@ -256,7 +307,7 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod("android.hardware.Camera", lpparam.classLoader, "takePicture", Camera.ShutterCallback.class, Camera.PictureCallback.class, Camera.PictureCallback.class, Camera.PictureCallback.class, new XC_MethodHook() {
             @Override
             protected void afterHookedMethod(MethodHookParam param) {
-                XposedBridge.log("【VCAM】4参数拍照");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]4参数拍照");
                 if (param.args[1] != null) {
                     process_a_shot_YUV(param);
                 }
@@ -273,12 +324,12 @@ public class HookMain implements IXposedHookLoadPackage {
                 super.beforeHookedMethod(param);
                 File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
                 need_to_show_toast = !toast_control.exists();
-                XposedBridge.log("【VCAM】[record]" + lpparam.packageName);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][record]" + lpparam.packageName);
                 if (toast_content != null && need_to_show_toast) {
                     try {
                         Toast.makeText(toast_content, "应用：" + lpparam.appInfo.name + "(" + lpparam.packageName + ")" + "触发了录像，但目前无法拦截", Toast.LENGTH_SHORT).show();
                     }catch (Exception ee){
-                        XposedBridge.log("【VCAM】[toast]" + Arrays.toString(ee.getStackTrace()));
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                     }
                 }
             }
@@ -292,7 +343,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     try {
                         toast_content = ((Application) param.args[0]).getApplicationContext();
                     } catch (Exception ee) {
-                        XposedBridge.log("【VCAM】" + ee.toString());
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
                     }
                     File force_private = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera1/private_dir.jpg");
                     if (toast_content != null) {//后半段用于强制私有目录
@@ -301,14 +352,14 @@ public class HookMain implements IXposedHookLoadPackage {
                             try {
                                 auth_statue += (toast_content.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) + 1);
                             } catch (Exception ee) {
-                                XposedBridge.log("【VCAM】[permission-check]" + ee.toString());
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][permission-check]" + getStackTraceString(ee));
                             }
                             try {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                     auth_statue += (toast_content.checkSelfPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE) + 1);
                                 }
                             } catch (Exception ee) {
-                                XposedBridge.log("【VCAM】[permission-check]" + ee.toString());
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][permission-check]" + getStackTraceString(ee));
                             }
                         }else {
                             if (toast_content.checkCallingPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED ){
@@ -334,8 +385,8 @@ public class HookMain implements IXposedHookLoadPackage {
                                     fos.write(info.getBytes());
                                     fos.flush();
                                     fos.close();
-                                } catch (Exception e) {
-                                    XposedBridge.log("【VCAM】[switch-dir]" + e.toString());
+                                } catch (Exception ee) {
+                                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][switch-dir]" + getStackTraceString(ee));
                                 }
                             }
                             video_path = toast_content.getExternalFilesDir(null).getAbsolutePath() + "/Camera1/";
@@ -367,7 +418,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
@@ -377,7 +428,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     return;
                 }
                 is_someone_playing = false;
-                XposedBridge.log("【VCAM】开始预览");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]开始预览");
                 start_preview_camera = (Camera) param.thisObject;
                 if (ori_holder != null) {
 
@@ -404,6 +455,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     mplayer1.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(MediaPlayer mp) {
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]播放声音");
                             mplayer1.start();
                         }
                     });
@@ -411,8 +463,8 @@ public class HookMain implements IXposedHookLoadPackage {
                     try {
                         mplayer1.setDataSource(video_path + "virtual.mp4");
                         mplayer1.prepare();
-                    } catch (IOException e) {
-                        XposedBridge.log("【VCAM】" + e.toString());
+                    } catch (IOException ee) {
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
                     }
                 }
 
@@ -446,6 +498,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                         @Override
                         public void onPrepared(MediaPlayer mp) {
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]播放声音");
                             mMediaPlayer.start();
                         }
                     });
@@ -453,8 +506,8 @@ public class HookMain implements IXposedHookLoadPackage {
                     try {
                         mMediaPlayer.setDataSource(video_path + "virtual.mp4");
                         mMediaPlayer.prepare();
-                    } catch (IOException e) {
-                        XposedBridge.log("【VCAM】" + e.toString());
+                    } catch (IOException ee) {
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
                     }
                 }
             }
@@ -463,7 +516,7 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod("android.hardware.Camera", lpparam.classLoader, "setPreviewDisplay", SurfaceHolder.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("【VCAM】添加Surfaceview预览");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]添加Surfaceview预览");
                 File file = new File(video_path + "virtual.mp4");
                 File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
                 need_to_show_toast = !toast_control.exists();
@@ -472,7 +525,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
@@ -507,7 +560,6 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod("android.hardware.camera2.CaptureRequest.Builder", lpparam.classLoader, "addTarget", Surface.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-
                 if (param.args[0] == null) {
                     return;
                 }
@@ -522,7 +574,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
@@ -536,6 +588,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 }
                 String surfaceInfo = param.args[0].toString();
                 if (surfaceInfo.contains("Surface(name=null)")) {
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]surfaceInfo contains Surface(name=null)");
                     if (c2_reader_Surfcae == null) {
                         c2_reader_Surfcae = (Surface) param.args[0];
                     } else {
@@ -545,14 +598,17 @@ public class HookMain implements IXposedHookLoadPackage {
                     }
                 } else {
                     if (c2_preview_Surfcae == null) {
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]c2_preview_Surfcae is null");
                         c2_preview_Surfcae = (Surface) param.args[0];
                     } else {
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]c2_preview_Surfcae is not null");
                         if ((!c2_preview_Surfcae.equals(param.args[0])) && c2_preview_Surfcae_1 == null) {
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]c2_preview_Surfcae not equal current Surfcae, c2_preview_Surfcae_1 is null");
                             c2_preview_Surfcae_1 = (Surface) param.args[0];
                         }
                     }
                 }
-                XposedBridge.log("【VCAM】添加目标：" + param.args[0].toString());
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]添加目标：" + param.args[0].toString());
                 param.args[0] = c2_virtual_surface;
 
             }
@@ -576,7 +632,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
@@ -599,7 +655,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     c2_reader_Surfcae = null;
                 }
 
-                XposedBridge.log("【VCAM】移除目标：" + param.args[0].toString());
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]移除目标：" + param.args[0].toString());
             }
         });
 
@@ -621,7 +677,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + lpparam.packageName + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
@@ -631,7 +687,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 if (control_file.exists()) {
                     return;
                 }
-                XposedBridge.log("【VCAM】开始build请求");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]开始build请求");
                 process_camera2_play();
             }
         });
@@ -653,7 +709,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     }
                     is_someone_playing = false;
 
-                    XposedBridge.log("停止预览");
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]停止预览");
                 }
             }
         });
@@ -661,29 +717,23 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod("android.media.ImageReader", lpparam.classLoader, "newInstance", int.class, int.class, int.class, int.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
-                XposedBridge.log("【VCAM】应用创建了渲染器：宽：" + param.args[0] + " 高：" + param.args[1] + "格式" + param.args[2]);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]应用创建了渲染器：宽：" + param.args[0] + " 高：" + param.args[1] + "格式：" + param.args[2]);
                 c2_ori_width = (int) param.args[0];
                 c2_ori_height = (int) param.args[1];
                 imageReaderFormat = (int) param.args[2];
                 File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
                 need_to_show_toast = !toast_control.exists();
                 if (toast_content != null && need_to_show_toast) {
-                    try {
-                        Toast.makeText(toast_content, "应用创建了渲染器：\n宽：" + param.args[0] + "\n高：" + param.args[1] + "\n一般只需要宽高比与视频相同", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        XposedBridge.log("【VCAM】[toast]" + e.toString());
-                    }
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]应用创建了渲染器：宽：" + param.args[0] + " 高：" + param.args[1] + " 一般只需要宽高比与视频相同");
                 }
             }
         });
-
 
         XposedHelpers.findAndHookMethod("android.hardware.camera2.CameraCaptureSession.CaptureCallback", lpparam.classLoader, "onCaptureFailed", CameraCaptureSession.class, CaptureRequest.class, CaptureFailure.class,
                 new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
-                        XposedBridge.log("【VCAM】onCaptureFailed" + "原因：" + ((CaptureFailure) param.args[2]).getReason());
-
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onCaptureFailed" + "原因：" + ((CaptureFailure) param.args[2]).getReason());
                     }
                 });
     }
@@ -706,7 +756,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 c2_hw_decode_obj.set_surfcae(c2_reader_Surfcae);
                 c2_hw_decode_obj.decode(video_path + "virtual.mp4");
             } catch (Throwable throwable) {
-                XposedBridge.log("【VCAM】" + throwable);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(throwable));
             }
         }
 
@@ -726,7 +776,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 c3_hw_decode_obj.set_surfcae(c2_reader_Surfcae_1);
                 c3_hw_decode_obj.decode(video_path + "virtual.mp4");
             } catch (Throwable throwable) {
-                XposedBridge.log("【VCAM】" + throwable);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(throwable));
             }
         }
 
@@ -741,6 +791,7 @@ public class HookMain implements IXposedHookLoadPackage {
             c2_player.setSurface(c2_preview_Surfcae);
             File sfile = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no-silent.jpg");
             if (!sfile.exists()) {
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]设置播放音量为0");
                 c2_player.setVolume(0, 0);
             }
             c2_player.setLooping(true);
@@ -748,13 +799,14 @@ public class HookMain implements IXposedHookLoadPackage {
             try {
                 c2_player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                     public void onPrepared(MediaPlayer mp) {
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]播放声音");
                         c2_player.start();
                     }
                 });
                 c2_player.setDataSource(video_path + "virtual.mp4");
                 c2_player.prepare();
-            } catch (Exception e) {
-                XposedBridge.log("【VCAM】[c2player][" + c2_preview_Surfcae.toString() + "]" + e);
+            } catch (Exception ee) {
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][c2player][" + c2_preview_Surfcae.toString() + "]" + getStackTraceString(ee));
             }
         }
 
@@ -768,6 +820,7 @@ public class HookMain implements IXposedHookLoadPackage {
             c2_player_1.setSurface(c2_preview_Surfcae_1);
             File sfile = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no-silent.jpg");
             if (!sfile.exists()) {
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]设置播放音量为0");
                 c2_player_1.setVolume(0, 0);
             }
             c2_player_1.setLooping(true);
@@ -775,16 +828,17 @@ public class HookMain implements IXposedHookLoadPackage {
             try {
                 c2_player_1.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                     public void onPrepared(MediaPlayer mp) {
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]播放声音");
                         c2_player_1.start();
                     }
                 });
                 c2_player_1.setDataSource(video_path + "virtual.mp4");
                 c2_player_1.prepare();
-            } catch (Exception e) {
-                XposedBridge.log("【VCAM】[c2player1]" + "[ " + c2_preview_Surfcae_1.toString() + "]" + e);
+            } catch (Exception ee) {
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][c2player1]" + "[ " + c2_preview_Surfcae_1.toString() + "]" + getStackTraceString(ee));
             }
         }
-        XposedBridge.log("【VCAM】Camera2处理过程完全执行");
+        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]Camera2处理过程完全执行");
     }
 
     private Surface create_virtual_surface() {
@@ -806,11 +860,12 @@ public class HookMain implements IXposedHookLoadPackage {
                 c2_virtual_surface = create_virtual_surface();
             }
         }
-        XposedBridge.log("【VCAM】【重建垃圾场】" + c2_virtual_surface.toString());
+        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]【重建垃圾场】" + c2_virtual_surface.toString());
         return c2_virtual_surface;
     }
 
     private void process_camera2_init(Class hooked_class) {
+        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]process_camera2_init:" + hooked_class.getName());
 
         XposedHelpers.findAndHookMethod(hooked_class, "onOpened", CameraDevice.class, new XC_MethodHook() {
             @Override
@@ -842,7 +897,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 c2_reader_Surfcae = null;
                 c2_preview_Surfcae = null;
                 is_first_hook_build = true;
-                XposedBridge.log("【VCAM】打开相机C2");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]打开相机C2");
 
                 File file = new File(video_path + "virtual.mp4");
                 File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
@@ -852,7 +907,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         try {
                             Toast.makeText(toast_content, "不存在替换视频\n" + toast_content.getPackageName() + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     return;
@@ -861,7 +916,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam paramd) throws Throwable {
                         if (paramd.args[0] != null) {
-                            XposedBridge.log("【VCAM】createCaptureSession创捷捕获，原始:" + paramd.args[0].toString() + "虚拟：" + c2_virtual_surface.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]createCaptureSession创捷捕获，原始:" + paramd.args[0].toString() + "虚拟：" + c2_virtual_surface.toString());
                             paramd.args[0] = Arrays.asList(c2_virtual_surface);
                             if (paramd.args[1] != null) {
                                 process_camera2Session_callback((CameraCaptureSession.StateCallback) paramd.args[1]);
@@ -870,10 +925,10 @@ public class HookMain implements IXposedHookLoadPackage {
                     }
                 });
 
-/*                XposedHelpers.findAndHookMethod(param.args[0].getClass(), "close", new XC_MethodHook() {
+                XposedHelpers.findAndHookMethod(param.args[0].getClass(), "close", new XC_MethodHook() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam paramd) throws Throwable {
-                        XposedBridge.log("C2终止预览");
+                        LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]C2终止预览");
                         if (c2_hw_decode_obj != null) {
                             c2_hw_decode_obj.stopDecode();
                             c2_hw_decode_obj = null;
@@ -897,7 +952,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         need_recreate = true;
                         is_first_hook_build= true;
                     }
-                });*/
+                });
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     XposedHelpers.findAndHookMethod(param.args[0].getClass(), "createCaptureSessionByOutputConfigurations", List.class, CameraCaptureSession.StateCallback.class, Handler.class, new XC_MethodHook() {
@@ -908,7 +963,7 @@ public class HookMain implements IXposedHookLoadPackage {
                                 outputConfiguration = new OutputConfiguration(c2_virtual_surface);
                                 param.args[0] = Arrays.asList(outputConfiguration);
 
-                                XposedBridge.log("【VCAM】执行了createCaptureSessionByOutputConfigurations-144777");
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]执行了createCaptureSessionByOutputConfigurations-144777");
                                 if (param.args[1] != null) {
                                     process_camera2Session_callback((CameraCaptureSession.StateCallback) param.args[1]);
                                 }
@@ -918,19 +973,19 @@ public class HookMain implements IXposedHookLoadPackage {
                 }
 
 
-                    XposedHelpers.findAndHookMethod(param.args[0].getClass(), "createConstrainedHighSpeedCaptureSession", List.class, CameraCaptureSession.StateCallback.class, Handler.class, new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            super.beforeHookedMethod(param);
-                            if (param.args[0] != null) {
-                                param.args[0] = Arrays.asList(c2_virtual_surface);
-                                XposedBridge.log("【VCAM】执行了 createConstrainedHighSpeedCaptureSession -5484987");
-                                if (param.args[1] != null) {
-                                    process_camera2Session_callback((CameraCaptureSession.StateCallback) param.args[1]);
-                                }
+                XposedHelpers.findAndHookMethod(param.args[0].getClass(), "createConstrainedHighSpeedCaptureSession", List.class, CameraCaptureSession.StateCallback.class, Handler.class, new XC_MethodHook() {
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                        super.beforeHookedMethod(param);
+                        if (param.args[0] != null) {
+                            param.args[0] = Arrays.asList(c2_virtual_surface);
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]执行了 createConstrainedHighSpeedCaptureSession -5484987");
+                            if (param.args[1] != null) {
+                                process_camera2Session_callback((CameraCaptureSession.StateCallback) param.args[1]);
                             }
                         }
-                    });
+                    }
+                });
 
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -940,7 +995,7 @@ public class HookMain implements IXposedHookLoadPackage {
                             super.beforeHookedMethod(param);
                             if (param.args[1] != null) {
                                 param.args[1] = Arrays.asList(c2_virtual_surface);
-                                XposedBridge.log("【VCAM】执行了 createReprocessableCaptureSession ");
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]执行了 createReprocessableCaptureSession ");
                                 if (param.args[2] != null) {
                                     process_camera2Session_callback((CameraCaptureSession.StateCallback) param.args[2]);
                                 }
@@ -958,7 +1013,7 @@ public class HookMain implements IXposedHookLoadPackage {
                             if (param.args[1] != null) {
                                 outputConfiguration = new OutputConfiguration(c2_virtual_surface);
                                 param.args[0] = Arrays.asList(outputConfiguration);
-                                XposedBridge.log("【VCAM】执行了 createReprocessableCaptureSessionByConfigurations");
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]执行了 createReprocessableCaptureSessionByConfigurations");
                                 if (param.args[2] != null) {
                                     process_camera2Session_callback((CameraCaptureSession.StateCallback) param.args[2]);
                                 }
@@ -973,7 +1028,7 @@ public class HookMain implements IXposedHookLoadPackage {
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             super.beforeHookedMethod(param);
                             if (param.args[0] != null) {
-                                XposedBridge.log("【VCAM】执行了 createCaptureSession -5484987");
+                                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]执行了 createCaptureSession -5484987");
                                 sessionConfiguration = (SessionConfiguration) param.args[0];
                                 outputConfiguration = new OutputConfiguration(c2_virtual_surface);
                                 fake_sessionConfiguration = new SessionConfiguration(sessionConfiguration.getSessionType(),
@@ -993,7 +1048,7 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod(hooked_class, "onError", CameraDevice.class, int.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("【VCAM】相机错误onerror：" + (int) param.args[1]);
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]相机错误onerror：" + (int) param.args[1]);
             }
 
         });
@@ -1002,7 +1057,7 @@ public class HookMain implements IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod(hooked_class, "onDisconnected", CameraDevice.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("【VCAM】相机断开onDisconnected ：");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]相机断开onDisconnected ：");
             }
 
         });
@@ -1012,9 +1067,9 @@ public class HookMain implements IXposedHookLoadPackage {
 
     private void process_a_shot_jpeg(XC_MethodHook.MethodHookParam param, int index) {
         try {
-            XposedBridge.log("【VCAM】第二个jpeg:" + param.args[index].toString());
-        } catch (Exception eee) {
-            XposedBridge.log("【VCAM】" + eee);
+            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]第二个jpeg:" + param.args[index].toString());
+        } catch (Exception ee) {
+            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
 
         }
         Class callback = param.args[index].getClass();
@@ -1026,14 +1081,14 @@ public class HookMain implements IXposedHookLoadPackage {
                     Camera loaclcam = (Camera) paramd.args[1];
                     onemwidth = loaclcam.getParameters().getPreviewSize().width;
                     onemhight = loaclcam.getParameters().getPreviewSize().height;
-                    XposedBridge.log("【VCAM】JPEG拍照回调初始化：宽：" + onemwidth + "高：" + onemhight + "对应的类：" + loaclcam.toString());
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]JPEG拍照回调初始化：宽：" + onemwidth + "高：" + onemhight + "对应的类：" + loaclcam.toString());
                     File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
                     need_to_show_toast = !toast_control.exists();
                     if (toast_content != null && need_to_show_toast) {
                         try {
                             Toast.makeText(toast_content, "发现拍照\n宽：" + onemwidth + "\n高：" + onemhight + "\n格式：JPEG", Toast.LENGTH_SHORT).show();
-                        } catch (Exception e) {
-                            XposedBridge.log("【VCAM】[toast]" + e.toString());
+                        } catch (Exception ee) {
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     File control_file = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "disable.jpg");
@@ -1047,7 +1102,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     byte[] jpeg_data = temp_array.toByteArray();
                     paramd.args[0] = jpeg_data;
                 } catch (Exception ee) {
-                    XposedBridge.log("【VCAM】" + ee.toString());
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
                 }
             }
         });
@@ -1055,9 +1110,9 @@ public class HookMain implements IXposedHookLoadPackage {
 
     private void process_a_shot_YUV(XC_MethodHook.MethodHookParam param) {
         try {
-            XposedBridge.log("【VCAM】发现拍照YUV:" + param.args[1].toString());
-        } catch (Exception eee) {
-            XposedBridge.log("【VCAM】" + eee);
+            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]发现拍照YUV:" + param.args[1].toString());
+        } catch (Exception ee) {
+            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
         }
         Class callback = param.args[1].getClass();
         XposedHelpers.findAndHookMethod(callback, "onPictureTaken", byte[].class, android.hardware.Camera.class, new XC_MethodHook() {
@@ -1067,14 +1122,14 @@ public class HookMain implements IXposedHookLoadPackage {
                     Camera loaclcam = (Camera) paramd.args[1];
                     onemwidth = loaclcam.getParameters().getPreviewSize().width;
                     onemhight = loaclcam.getParameters().getPreviewSize().height;
-                    XposedBridge.log("【VCAM】YUV拍照回调初始化：宽：" + onemwidth + "高：" + onemhight + "对应的类：" + loaclcam.toString());
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]YUV拍照回调初始化：宽：" + onemwidth + "高：" + onemhight + "对应的类：" + loaclcam.toString());
                     File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
                     need_to_show_toast = !toast_control.exists();
                     if (toast_content != null && need_to_show_toast) {
                         try {
                             Toast.makeText(toast_content, "发现拍照\n宽：" + onemwidth + "\n高：" + onemhight + "\n格式：YUV_420_888", Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     File control_file = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "disable.jpg");
@@ -1084,7 +1139,7 @@ public class HookMain implements IXposedHookLoadPackage {
                     input = getYUVByBitmap(getBMP(video_path + "1000.bmp"));
                     paramd.args[0] = input;
                 } catch (Exception ee) {
-                    XposedBridge.log("【VCAM】" + ee.toString());
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]" + getStackTraceString(ee));
                 }
             }
         });
@@ -1105,7 +1160,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 try {
                     Toast.makeText(toast_content, "不存在替换视频\n" + toast_content.getPackageName() + "当前路径：" + video_path, Toast.LENGTH_SHORT).show();
                 } catch (Exception ee) {
-                    XposedBridge.log("【VCAM】[toast]" + ee);
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                 }
             }
             need_stop = 1;
@@ -1125,14 +1180,14 @@ public class HookMain implements IXposedHookLoadPackage {
                     mwidth = camera_onPreviewFrame.getParameters().getPreviewSize().width;
                     mhight = camera_onPreviewFrame.getParameters().getPreviewSize().height;
                     int frame_Rate = camera_onPreviewFrame.getParameters().getPreviewFrameRate();
-                    XposedBridge.log("【VCAM】帧预览回调初始化：宽：" + mwidth + " 高：" + mhight + " 帧率：" + frame_Rate);
+                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]帧预览回调初始化：宽：" + mwidth + " 高：" + mhight + " 帧率：" + frame_Rate);
                     File toast_control = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera1/" + "no_toast.jpg");
                     need_to_show_toast = !toast_control.exists();
                     if (toast_content != null && need_to_show_toast) {
                         try {
                             Toast.makeText(toast_content, "发现预览\n宽：" + mwidth + "\n高：" + mhight + "\n" + "需要视频分辨率与其完全相同", Toast.LENGTH_SHORT).show();
                         } catch (Exception ee) {
-                            XposedBridge.log("【VCAM】[toast]" + ee.toString());
+                            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG][toast]" + getStackTraceString(ee));
                         }
                     }
                     if (finalNeed_stop == 1) {
@@ -1158,27 +1213,100 @@ public class HookMain implements IXposedHookLoadPackage {
         if (callback_calss == null){
             return;
         }
+
+//        Method[] methods = callback_calss.getClass().getMethods();
+//        for(Method method:methods) {
+//            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]当前SDK：" + Build.VERSION.SDK_INT);
+//            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]实体类的方法名：" + method.getName());
+//        }
+
+        /**
+         * 当相机设备完成配置时调用此方法，会话可以开始处理捕获请求。
+         * 如果会话中已经有捕获请求排队，则它们将在调用此回调后开始处理，并且会话将在调用此回调后立即调用onActive。
+         * 如果没有提交捕获请求，则会话在此回调后立即调用onReady。
+         * 如果相机设备配置失败，则会调用onConfigureFailed而不是此回调。
+         */
         XposedHelpers.findAndHookMethod(callback_calss.getClass(), "onConfigureFailed", CameraCaptureSession.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("【VCAM】onConfigureFailed ：" + param.args[0].toString());
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onConfigureFailed ：" + param.args[0].toString());
             }
 
         });
 
+        /**
+         * 如果会话无法按请求进行配置，则调用此方法。
+         * 如果请求的输出集包含不受支持的大小，或者一次请求了太多的输出，则可能会发生这种情况。
+         * 会话被视为关闭，并且在调用此回调后对其调用的所有方法都将抛出IllegalStateException。在此回调之前提交给会话的任何捕获请求都将被丢弃，并且不会在其侦听器上产生任何回调。
+         */
         XposedHelpers.findAndHookMethod(callback_calss.getClass(), "onConfigured", CameraCaptureSession.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("【VCAM】onConfigured ：" + param.args[0].toString());
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onConfigured ：" + param.args[0].toString());
             }
         });
 
-        XposedHelpers.findAndHookMethod( callback_calss.getClass(), "onClosed", CameraCaptureSession.class, new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("【VCAM】onClosed ："+ param.args[0].toString());
-            }
-        });
+        /**
+         * 每当会话没有更多的捕获请求要处理时，都会调用此方法。
+         * 在创建新会话期间，如果在完成配置之前未提交任何捕获请求，则会在 onConfigured 之后调用此回调。
+         * 否则，每当会话完成处理其所有活动捕获请求并且未设置重复请求或突发时，都会调用此回调。
+         */
+//        XposedHelpers.findAndHookMethod( callback_calss.getClass(), "onReady", CameraCaptureSession.class, new XC_MethodHook() {
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onReady ："+ param.args[0].toString());
+//            }
+//        });
+
+        /**
+         * 当会话开始主动处理捕获请求时调用此方法。
+         * 如果在调用onConfigured之前提交了捕获请求，则会话将立即开始处理这些请求，并在回调后立即调用此方法。
+         * 如果会话处理完捕获请求并调用onReady，则一旦提交新的捕获请求，将再次调用此回调。
+         */
+//        XposedHelpers.findAndHookMethod( callback_calss.getClass(), "onActive", CameraCaptureSession.class, new XC_MethodHook() {
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onActive ："+ param.args[0].toString());
+//            }
+//        });
+
+        /**
+         * 当相机设备的输入捕获队列变为空，并准备接受下一个请求时，将调用此方法。
+         * 挂起的捕获请求存在于两个队列中的一个：正在处理管道中不同阶段的请求的飞行队列和等待进入飞行队列的输入队列。需要输入队列，因为可能提交的请求比当前相机设备管道深度更多。
+         * 当输入队列变为空时，将触发此回调，并且相机设备可能必须回退到重复请求（如果设置），或者完全跳过来自传感器的下一帧。例如，这可能会导致相机预览输出出现故障。此回调仅在由capture（）或captureBurst（）排队的请求之后触发，而不是在重复请求或burst进入飞行队列之后触发。例如，在重复请求和单次JPEG捕获的常见情况下，仅当JPEG请求已进入飞行队列进行捕获时，此回调才会触发。
+         * 仅在输入队列为空时发送新的捕获或captureBurst，可以将管道延迟最小化。
+         * 创建会话时不会触发此回调。它与onReady不同，后者在两个队列中的所有请求都已处理时触发。
+         */
+//        XposedHelpers.findAndHookMethod( callback_calss.getClass(), "onCaptureQueueEmpty", CameraCaptureSession.class, new XC_MethodHook() {
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onCaptureQueueEmpty ："+ param.args[0].toString());
+//            }
+//        });
+
+        /**
+         * 当会话关闭时调用此方法。if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+         * 当父相机设备创建新会话或关闭父相机设备（用户关闭设备或由于相机设备断开连接或发生致命错误）时，会话关闭。
+         * 一旦会话关闭，所有方法都会抛出IllegalStateException，并且任何重复请求或突发请求都将停止（就像调用stopRepeating()一样）。但是，提交给会话的任何正在进行的捕获请求都将像正常完成一样。
+         */
+//        XposedHelpers.findAndHookMethod( callback_calss.getClass(), "onClosed", CameraCaptureSession.class, new XC_MethodHook() {
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onClosed ："+ param.args[0].toString());
+//            }
+//        });
+
+        /**
+         * 当输出Surface的缓冲区预分配完成时，将调用此方法。
+         * 输出Surface的缓冲区预分配是通过prepare调用启动的。在分配正在进行时，不能将Surface用作捕获目标。一旦此回调触发，提供的输出Surface可以再次用作捕获请求的目标。
+         * 如果在预分配期间发生错误（例如，耗尽适当的内存），则在遇到错误后仍会调用此回调，尽管可能没有成功预分配某些缓冲区。
+         */
+//        XposedHelpers.findAndHookMethod( callback_calss.getClass(), "onSurfacePrepared", CameraCaptureSession.class, new XC_MethodHook() {
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]onSurfacePrepared ："+ param.args[0].toString());
+//            }
+//        });
     }
 
 
@@ -1225,6 +1353,24 @@ public class HookMain implements IXposedHookLoadPackage {
         int[] pixels = new int[size];
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
         return rgb2YCbCr420(pixels, width, height);
+    }
+
+    /**
+     * 打印异常堆栈
+     */
+    public static String getStackTraceString(Throwable ex){
+        StackTraceElement[] traceElements = ex.getStackTrace();
+
+        StringBuilder traceBuilder = new StringBuilder();
+
+        if (traceElements != null && traceElements.length > 0) {
+            for (StackTraceElement traceElement : traceElements) {
+                traceBuilder.append(traceElement.toString());
+                traceBuilder.append("\n");
+            }
+        }
+
+        return traceBuilder.toString();
     }
 }
 

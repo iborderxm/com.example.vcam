@@ -53,6 +53,8 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogToFileUtils.init(this); //初始化
+
         setContentView(R.layout.activity_main);
 
         Button repo_button = findViewById(R.id.button);
@@ -222,7 +224,8 @@ public class MainActivity extends Activity {
 
 
     private void sync_statue_with_files() {
-        Log.d(this.getApplication().getPackageName(), "【VCAM】[sync]同步开关状态");
+        Log.d(this.getApplication().getPackageName(), "[VCAMLOG][sync]同步开关状态");
+        System.out.println("[VCAMLOG][sync]同步开关状态"+Environment.getExternalStorageDirectory().getAbsolutePath());
 
         if (!has_permission()){
             request_permission();
