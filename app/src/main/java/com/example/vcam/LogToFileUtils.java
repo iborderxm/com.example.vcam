@@ -56,13 +56,20 @@ public class LogToFileUtils {
 
     private static final String MY_TAG = "VCAMLOG";
 
+    public static boolean islog = true;
+
     /**
      * 初始化日志库
      *
      * @param context
      */
     public static void init(Context context) {
-        Log.i(MY_TAG, "init ...");
+        if (!islog){
+            return;
+        }
+
+        //Log.i(MY_TAG, "init ...");
+        System.out.println("[VCAMLOG]LogToFileUtils init ...");
         if (null == instance || null == logFile || !logFile.exists()) {
             mContext = context;
             instance = new LogToFileUtils();
