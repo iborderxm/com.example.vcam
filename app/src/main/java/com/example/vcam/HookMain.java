@@ -47,7 +47,7 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class HookMain implements IXposedHookLoadPackage {
-    private static final String PACKAGE_NAME = "com.ss.android.ugc.aweme";
+    private static final String PACKAGE_NAME = "com.ss.android.ugc.aweme@com.polaris.recorder";
     public static Surface mSurface;
     public static SurfaceTexture mSurfacetexture;
     public static MediaPlayer mMediaPlayer;
@@ -102,9 +102,9 @@ public class HookMain implements IXposedHookLoadPackage {
     public Context toast_content;
 
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Exception {
-//        if (!lpparam.packageName.contains(PACKAGE_NAME)) {
-//            return;
-//        }
+        if (!PACKAGE_NAME.contains(lpparam.packageName)) {
+            return;
+        }
 
         if (LogToFileUtils.islog){
             LogToFileUtils.init(toast_content);
@@ -815,15 +815,15 @@ public class HookMain implements IXposedHookLoadPackage {
 
             }
         });
-        /*
+
         XposedHelpers.findAndHookMethod("android.media.AudioRecord", lpparam.classLoader, "read" , byte[].class , int.class ,  int.class ,  new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
-                for (int i = 0; i < param.args.length; i++) {
-                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
-                }
-            }
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
+//                for (int i = 0; i < param.args.length; i++) {
+//                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
+//                }
+//            }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -839,13 +839,13 @@ public class HookMain implements IXposedHookLoadPackage {
         });
 
         XposedHelpers.findAndHookMethod("android.media.AudioRecord", lpparam.classLoader, "read" , byte[].class , int.class ,  int.class ,  int.class ,  new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
-                for (int i = 0; i < param.args.length; i++) {
-                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
-                }
-            }
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
+//                for (int i = 0; i < param.args.length; i++) {
+//                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
+//                }
+//            }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -861,13 +861,13 @@ public class HookMain implements IXposedHookLoadPackage {
         });
 
         XposedHelpers.findAndHookMethod("android.media.AudioRecord", lpparam.classLoader, "read" , short[].class , int.class ,  int.class ,  int.class ,  new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
-                for (int i = 0; i < param.args.length; i++) {
-                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
-                }
-            }
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
+//                for (int i = 0; i < param.args.length; i++) {
+//                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
+//                }
+//            }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -878,18 +878,22 @@ public class HookMain implements IXposedHookLoadPackage {
                 }
                 //在此处重写音频数据
                 //音频数据在param.arg
+                //四个参数
+                //param.arg[0] short数组
+                //param.arg[2] 数组最大长度
+
             }
 
         });
 
         XposedHelpers.findAndHookMethod("android.media.AudioRecord", lpparam.classLoader, "read" , float[].class , int.class ,  int.class ,  int.class ,  new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
-                for (int i = 0; i < param.args.length; i++) {
-                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
-                }
-            }
+//            @Override
+//            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+//                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord beforeHookedMethod");
+//                for (int i = 0; i < param.args.length; i++) {
+//                    LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord param[%s]:%s", i, param.args[i]));
+//                }
+//            }
 
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
@@ -903,7 +907,7 @@ public class HookMain implements IXposedHookLoadPackage {
             }
 
         });
-        */
+
     }
 
     private void process_camera2_play() {
