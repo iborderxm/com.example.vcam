@@ -163,18 +163,22 @@ public class HookMain implements IXposedHookLoadPackage {
 //        for(Method method:methods) {
 //            LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]实体类的方法名：" + method.getName());
 //        }
-/*
+
         XposedHelpers.findAndHookConstructor("android.media.AudioRecord", lpparam.classLoader, int.class , int.class ,  int.class , int.class , int.class , new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-
+				//audioSource：音频输入源，比如有麦克风等，通过MediaRecord.AudioSource获取。
+                //sampleRateInHz：音频采样率，常见的采样率为44100即44.1KHZ
+                //channelConfig：音频录制时的声道，分为单声道和立体声道，在AudioFormat中定义。
+                //audioFormat：音频格式
+                bufferSizeInBytes：音频缓冲区大小，不同手机厂商有不同的实现（比如 我的一加手机该值为3584字节），可以通过下面的方法获取。
                 LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 beforeHookedMethod");
                 for (int i = 0; i < param.args.length; i++) {
                     LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord创建对象 param[%s]:%s", i, param.args[i]));
                 }
             }
         });
-*/
+
         XposedHelpers.findAndHookMethod("android.media.AudioRecord", lpparam.classLoader, "startRecording" , new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
