@@ -29,7 +29,10 @@ android {
 
 dependencies {
     compileOnly files('libs/rt.jar')
-    implementation 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
+	api files('libs/mp3spi-1.9.5.4.jar')
+	api files('libs/jlayer-1.0.1.4.jar')
+	api files('libs/tritonus-share-0.3.7.4.jar')
+    //implementation 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
     compileOnly 'de.robv.android.xposed:api:82'
     compileOnly 'de.robv.android.xposed:api:82:sources'
 }
