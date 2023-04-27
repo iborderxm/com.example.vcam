@@ -13,7 +13,7 @@ import javax.sound.sampled.SourceDataLine;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 
 /**
- * MP3×ªPCM Java·½Ê½ÊµÏÖ
+ * MP3è½¬PCM Javaæ–¹å¼å®ç°
  */
 public class AudioUtils {
 
@@ -21,18 +21,18 @@ public class AudioUtils {
 	}
 
 	/**
-	 * MP3×ª»»PCM
+	 * MP3è½¬æ¢PCM
 	 * 
-	 * @param mp3filepath Ô­Ê¼ÎÄ¼şÂ·¾¶
-	 * @param pcmfilepath ×ª»»ÎÄ¼şµÄ±£´æÂ·¾¶
+	 * @param mp3filepath åŸå§‹æ–‡ä»¶è·¯å¾„
+	 * @param pcmfilepath è½¬æ¢æ–‡ä»¶çš„ä¿å­˜è·¯å¾„
 	 * @return
 	 * @throws Exception
 	 */
 	public static boolean convertMP3ToPcm(String mp3filepath, String pcmfilepath) {
 		try {
-			// »ñÈ¡ÎÄ¼şµÄÒôÆµÁ÷£¬pcmµÄ¸ñÊ½
+			// è·å–æ–‡ä»¶çš„éŸ³é¢‘æµï¼Œpcmçš„æ ¼å¼
 			AudioInputStream audioInputStream = getPcmAudioInputStream(mp3filepath);
-			// ½«ÒôÆµ×ª»¯Îª pcmµÄ¸ñÊ½±£´æÏÂÀ´
+			// å°†éŸ³é¢‘è½¬åŒ–ä¸º pcmçš„æ ¼å¼ä¿å­˜ä¸‹æ¥
 			AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, new File(pcmfilepath));
 			return true;
 		} catch (IOException e) {
@@ -42,24 +42,24 @@ public class AudioUtils {
 	}
 
 	/**
-	 * ²¥·ÅMP3
+	 * æ’­æ”¾MP3
 	 * 
 	 * @param mp3filepath
 	 * @throws Exception
 	 */
 	public static void playMP3(String mp3filepath) throws Exception {
-		// »ñÈ¡ÒôÆµÎªpcmµÄ¸ñÊ½
+		// è·å–éŸ³é¢‘ä¸ºpcmçš„æ ¼å¼
 		AudioInputStream audioInputStream = getPcmAudioInputStream(mp3filepath);
 
-		// ²¥·Å
+		// æ’­æ”¾
 		if (audioInputStream == null) {
 			System.out.println("null audiostream");
 			return;
 		}
-		// »ñÈ¡ÒôÆµµÄ¸ñÊ½
+		// è·å–éŸ³é¢‘çš„æ ¼å¼
 		AudioFormat targetFormat = audioInputStream.getFormat();
 		DataLine.Info dinfo = new DataLine.Info(SourceDataLine.class, targetFormat, AudioSystem.NOT_SPECIFIED);
-		// Êä³öÉè±¸
+		// è¾“å‡ºè®¾å¤‡
 		SourceDataLine line = null;
 		try {
 			line = (SourceDataLine) AudioSystem.getLine(dinfo);
@@ -68,19 +68,19 @@ public class AudioUtils {
 
 			int len = -1;
 			byte[] buffer = new byte[1024];
-			// ¶ÁÈ¡ÒôÆµÎÄ¼ş
+			// è¯»å–éŸ³é¢‘æ–‡ä»¶
 			while ((len = audioInputStream.read(buffer)) > 0) {
-				// Êä³öÒôÆµÎÄ¼ş
+				// è¾“å‡ºéŸ³é¢‘æ–‡ä»¶
 				line.write(buffer, 0, len);
 			}
 
-			// BlockµÈ´ıÁÙÊ±Êı¾İ±»Êä³öÎª¿Õ
+			// Blockç­‰å¾…ä¸´æ—¶æ•°æ®è¢«è¾“å‡ºä¸ºç©º
 			line.drain();
 
-			// ¹Ø±Õ¶ÁÈ¡Á÷
+			// å…³é—­è¯»å–æµ
 			audioInputStream.close();
 
-			// Í£Ö¹²¥·Å
+			// åœæ­¢æ’­æ”¾
 			line.stop();
 
 		} catch (Exception ex) {
@@ -94,7 +94,7 @@ public class AudioUtils {
 	}
 
 	/**
-	 * »ñÈ¡ÎÄ¼şµÄÒôÆµÁ÷
+	 * è·å–æ–‡ä»¶çš„éŸ³é¢‘æµ
 	 * 
 	 * @param mp3filepath
 	 * @return
@@ -106,16 +106,16 @@ public class AudioUtils {
 		AudioInputStream in = null;
 		try {
 
-			// ¶ÁÈ¡ÒôÆµÎÄ¼şµÄÀà
+			// è¯»å–éŸ³é¢‘æ–‡ä»¶çš„ç±»
 			MpegAudioFileReader mp = new MpegAudioFileReader();
 			in = mp.getAudioInputStream(mp3);
 			AudioFormat baseFormat = in.getFormat();
 
-			// Éè¶¨Êä³ö¸ñÊ½Îªpcm¸ñÊ½µÄÒôÆµÎÄ¼ş
+			// è®¾å®šè¾“å‡ºæ ¼å¼ä¸ºpcmæ ¼å¼çš„éŸ³é¢‘æ–‡ä»¶
 			targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, baseFormat.getSampleRate(), 16,
 					baseFormat.getChannels(), baseFormat.getChannels() * 2, baseFormat.getSampleRate(), false);
 
-			// Êä³öµ½ÒôÆµ
+			// è¾“å‡ºåˆ°éŸ³é¢‘
 			audioInputStream = AudioSystem.getAudioInputStream(targetFormat, in);
 			
 		} catch (Exception e) {
