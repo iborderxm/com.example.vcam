@@ -175,7 +175,7 @@ public class HookMain implements IXposedHookLoadPackage {
                 for (int i = 0; i < param.args.length; i++) {
                     LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord创建对象 param[%s]:%s", i, param.args[i]));
                 }
-				AudioUtils.sampleRate = (float)param.args[1];
+				AudioUtils.sampleRate = Float.parseFloat(String.valueOf(param.args[1]));
 				AudioUtils.channels = (int)param.args[3];
 				AudioUtils.bufferSize = (int)param.args[4];
 				LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 读取mp3开始");
