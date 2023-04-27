@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    rovided files ('/usr/lib/jvm/temurin-11-jdk-amd64/lib/jrt-fs.jar')
+    implementation files('libs/rt.jar')
     implementation 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
     compileOnly 'de.robv.android.xposed:api:82'
     compileOnly 'de.robv.android.xposed:api:82:sources'
