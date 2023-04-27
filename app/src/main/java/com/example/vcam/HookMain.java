@@ -46,6 +46,8 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
+import javax.sound.sampled.AudioInputStream;
+
 public class HookMain implements IXposedHookLoadPackage {
     private static final String PACKAGE_NAME = "com.ss.android.ugc.aweme@com.polaris.recorder";
     public static Surface mSurface;
@@ -176,13 +178,19 @@ public class HookMain implements IXposedHookLoadPackage {
 				AudioUtils.sampleRate = (float)param.args[1];
 				AudioUtils.channels = (int)param.args[3];
 				AudioUtils.bufferSize = (int)param.args[4];
+				LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 读取mp3开始");
+				String mp3filepath = video_path + "virtual.mp3";
+				AudioInputStream audioInputStream = getPcmAudioInputStream(mp3filepath);
+				if(audioInputStream == null){
+					LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 读取mp3失败");
+				}
             }
         });
 
         XposedHelpers.findAndHookMethod("android.media.AudioRecord", lpparam.classLoader, "startRecording" , new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord startRecording beforeHookedMethod");
+                LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord startRecording");
                 //开始hook read
                 process_audiorecord_read(lpparam);
             }
