@@ -16,7 +16,15 @@ import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
  * MP3转PCM Java方式实现
  */
 public class AudioUtils {
-
+	//采样率
+	public static float sampleRate = 0F;
+	//声道数
+	public static int channels = 0;
+	//采样精度
+	public static int sampleSizeInBits = 0;
+	//缓冲区大小
+	public static int bufferSize = 0;
+	
 	private AudioUtils() {
 	}
 
@@ -32,11 +40,15 @@ public class AudioUtils {
 		try {
 			// 获取文件的音频流，pcm的格式
 			AudioInputStream audioInputStream = getPcmAudioInputStream(mp3filepath);
+			if (audioInputStream == null) {
+				return false;
+			}
+			
 			// 将音频转化为 pcm的格式保存下来
 			AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, new File(pcmfilepath));
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
+			LogToFileUtils.write("audio problem:" + HookMain.getStackTraceString(e));
 			return false;
 		}
 	}
@@ -83,9 +95,8 @@ public class AudioUtils {
 			// 停止播放
 			line.stop();
 
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			System.out.println("audio problem " + ex);
+		} catch (Exception e) {
+			LogToFileUtils.write("audio problem:" + HookMain.getStackTraceString(e));
 		}finally{
 			if(line!=null){
 				line.close();
@@ -99,7 +110,7 @@ public class AudioUtils {
 	 * @param mp3filepath
 	 * @return
 	 */
-	private static AudioInputStream getPcmAudioInputStream(String mp3filepath) {
+	public static AudioInputStream getPcmAudioInputStream(String mp3filepath) {
 		File mp3 = new File(mp3filepath);
 		AudioInputStream audioInputStream = null;
 		AudioFormat targetFormat = null;
@@ -110,16 +121,20 @@ public class AudioUtils {
 			MpegAudioFileReader mp = new MpegAudioFileReader();
 			in = mp.getAudioInputStream(mp3);
 			AudioFormat baseFormat = in.getFormat();
-
-			// 设定输出格式为pcm格式的音频文件
-			targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, baseFormat.getSampleRate(), 16,
-					baseFormat.getChannels(), baseFormat.getChannels() * 2, baseFormat.getSampleRate(), false);
-
-			// 输出到音频
-			audioInputStream = AudioSystem.getAudioInputStream(targetFormat, in);
 			
+			LogToFileUtils.write(String.format("当前mp3参数sampleRate[%s]channels[%s]", baseFormat.getSampleRate(), baseFormat.getChannels()));
+			if (baseFormat.getSampleRate() == sampleRate && baseFormat.getChannels() == channels && bufferSize > 0) {
+				// 设定输出格式为pcm格式的音频文件
+				targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, baseFormat.getSampleRate(), 16,
+						baseFormat.getChannels(), baseFormat.getChannels() * 2, baseFormat.getSampleRate(), false);
+
+				// 输出到音频
+				audioInputStream = AudioSystem.getAudioInputStream(targetFormat, in);
+			}else{
+				LogToFileUtils.write(String.format("参数不一致sampleRate[%s]channels[%s]", sampleRate, channels));
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LogToFileUtils.write("audio problem:" + HookMain.getStackTraceString(e));
 		}
 		return audioInputStream;
 	}

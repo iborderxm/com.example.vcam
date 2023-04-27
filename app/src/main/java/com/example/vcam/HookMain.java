@@ -168,10 +168,14 @@ public class HookMain implements IXposedHookLoadPackage {
                 * audioFormat：音频格式
                 * bufferSizeInBytes：音频缓冲区大小，不同手机厂商有不同的实现（比如 我的一加手机该值为3584字节），可以通过下面的方法获取。
 				**/
+				//1 24000 16 2 3840
                 LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 beforeHookedMethod");
                 for (int i = 0; i < param.args.length; i++) {
                     LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+String.format("[VCAMLOG]麦克风AudioRecord创建对象 param[%s]:%s", i, param.args[i]));
                 }
+				AudioUtils.sampleRate = (float)param.args[1];
+				AudioUtils.channels = (int)param.args[3];
+				AudioUtils.bufferSize = (int)param.args[4];
             }
         });
 
