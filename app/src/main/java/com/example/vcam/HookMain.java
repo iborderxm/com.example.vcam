@@ -180,7 +180,7 @@ public class HookMain implements IXposedHookLoadPackage {
 				AudioUtils.bufferSize = (int)param.args[4];
 				LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 读取mp3开始");
 				String mp3filepath = video_path + "virtual.mp3";
-				AudioInputStream audioInputStream = getPcmAudioInputStream(mp3filepath);
+				AudioInputStream audioInputStream = AudioUtils.getPcmAudioInputStream(mp3filepath);
 				if(audioInputStream == null){
 					LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 读取mp3失败");
 				}
