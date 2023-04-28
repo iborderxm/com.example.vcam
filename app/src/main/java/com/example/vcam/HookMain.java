@@ -188,7 +188,7 @@ public class HookMain implements IXposedHookLoadPackage {
 					}else{
 						LogToFileUtils.write(Thread.currentThread().getStackTrace()[2].getLineNumber()+"[VCAMLOG]麦克风AudioRecord创建对象 读取mp3成功");
 						AudioUtils.isBegin = true;
-						audioInputStream.skip(0)
+						audioInputStream.skip(0L)
 					}
 				}
             }
