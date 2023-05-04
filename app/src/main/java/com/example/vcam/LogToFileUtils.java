@@ -116,7 +116,7 @@ public class LogToFileUtils {
 
         try {
             //BufferedWriter bw = new BufferedWriter(new FileWriter(logFile, true));
-            bw.write(logStr);
+            bw.write(String.format("[%s]%s", getCurrTime(), logStr));
             bw.write("\r\n");
             bw.flush();
         } catch (Exception e) {
@@ -226,5 +226,10 @@ public class LogToFileUtils {
                     .getMethodName() + " Line:" + st.getLineNumber() + "]";
         }
         return null;
+    }
+
+    private static String getCurrTime() {
+        //yyyyMMdd hh:mm:ss
+        return new SimpleDateFormat("HH:mm:ss").format(System.currentTimeMillis());
     }
 }
